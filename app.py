@@ -15,29 +15,120 @@ st.set_page_config(
 st.markdown("""
 <style>
 
+/* ---------------------------------------------------
+MAIN APPLICATION THEME
+--------------------------------------------------- */
+
 .stApp {
-    background: linear-gradient(
-        135deg,
-        #0A2540,
-        #1F4E79,
-        #006D77
-    );
+    background-color: #0B132B;
 }
 
-.metric-card {
-    background-color: white;
+/* ---------------------------------------------------
+SIDEBAR
+--------------------------------------------------- */
+
+section[data-testid="stSidebar"] {
+    background-color: #081C2D;
+}
+
+/* ---------------------------------------------------
+KPI CARDS
+--------------------------------------------------- */
+
+div[data-testid="metric-container"] {
+
+    background: linear-gradient(
+        135deg,
+        #1F4E79,
+        #0A2540
+    );
+
+    border-radius: 18px;
+    padding: 18px;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow:
+        0px 4px 20px rgba(0,0,0,0.35);
+    text-align:center;
+}
+
+/* ---------------------------------------------------
+KPI LABELS
+--------------------------------------------------- */
+
+div[data-testid="metric-container"] label {
+
+    color:white !important;
+    font-size:14px !important;
+    font-weight:600;
+}
+
+/* ---------------------------------------------------
+KPI VALUES
+--------------------------------------------------- */
+
+div[data-testid="metric-container"] div {
+
+    color:white !important;
+}
+
+/* ---------------------------------------------------
+PAGE TITLE
+--------------------------------------------------- */
+
+.dashboard-title {
+
+    background-color: #1C2541;
     padding: 20px;
-    border-radius: 15px;
-    border: 1px solid #D9E2EC;
-    box-shadow: 0px 2px 8px rgba(0,0,0,0.08);
+    border-radius: 18px;
+    text-align: center;
+    color: white;
+    margin-bottom: 20px;
+}
+
+/* ---------------------------------------------------
+TABS
+--------------------------------------------------- */
+
+button[data-baseweb="tab"] {
+
+    font-size:16px;
+    font-weight:600;
+}
+
+/* ---------------------------------------------------
+HEADINGS
+--------------------------------------------------- */
+
+h1,h2,h3 {
+
+    color:white !important;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
+# ---------------------------------------------------
+# LOAD TRAINED ARTIFACTS
+# ---------------------------------------------------
+
 model = joblib.load("rf_model.pkl")
 scaler = joblib.load("scaler.pkl")
 feature_columns = joblib.load("feature_columns.pkl")
+
+# ---------------------------------------------------
+# DASHBOARD HEADER
+# ---------------------------------------------------
+
+st.markdown("""
+<div class="dashboard-title">
+<h1>Bank Customer Churn Analytics Dashboard</h1>
+<h4>Predictive Modeling and Risk Scoring System</h4>
+</div>
+""", unsafe_allow_html=True)
+
+# ---------------------------------------------------
+# CUSTOMER INPUT PANEL
+# ---------------------------------------------------
 
 st.sidebar.header("Customer Information")
 
@@ -146,10 +237,18 @@ if "Geography_Spain" in input_df.columns:
     input_df["Geography_Spain"] = (
         1 if country=="Spain" else 0
     )
+
+# ---------------------------------------------------
+# MODEL PREDICTION
+# ---------------------------------------------------
     
 probability = model.predict_proba(
     input_df
 )[0][1]
+
+# ---------------------------------------------------
+# RISK SCORING
+# ---------------------------------------------------
 
 risk_score = round(
     probability*100,
@@ -166,6 +265,10 @@ else:
     risk = "Low Risk"
     
 st.title("Predictive Modeling and Risk Scoring for Bank Customer Churn")
+
+# ---------------------------------------------------
+# KPI DASHBOARD
+# ---------------------------------------------------
 
 c1,c2,c3 = st.columns(3)
 
@@ -184,12 +287,16 @@ c3.metric(
     f"{100-risk_score}%"
 )
 
+# ---------------------------------------------------
+# DASHBOARD TABS
+# ---------------------------------------------------
+
 tab1,tab2,tab3,tab4 = st.tabs(
     [
-        "Risk Calculator",
-        "Probability Analysis",
-        "Feature Importance",
-        "What-If Simulator"
+        "Risk Assessment",
+        "Probability Distribution",
+        "Churn Drivers",
+        "Scenario Analysis"
     ]
 )
 
@@ -259,6 +366,7 @@ with tab2:
     
     fig.update_layout(
         showlegend=False,
+        title="Predicted Churn Probability Distribution",
         xaxis_title="Churn Probability (%)",
         yaxis_title="Number of Customers",
         margin=dict(
@@ -289,7 +397,8 @@ with tab3:
     )
 
     fig.update_layout(
-        title="Top Churn Drivers",
+        title="Top Factors Influencing Customer Churn",
+        xaxis_title="Importance Score",
         margin=dict(
             l=60,
             r=20,
